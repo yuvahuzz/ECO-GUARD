@@ -1,0 +1,56 @@
+from flask import Flask, render_template, request, jsonify
+from flask_sqlalchemy import SQLAlchemy
+
+app = Flask(_name_)
+
+# Database Configuration
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///eco_guard.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(app)
+
+# Define Model
+class EnergyUsage(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    device_name = db.Column(db.String(50), nullable=False)
+    power_usage = db.Column(db.Float, nullable=False)
+    hours_per_day = db.Column(db.Float, nullable=False)
+    energy_consumed = db.Column(db.Float, nullable=False)
+    carbon_emission = db.Column(db.Float, nullable=False)
+
+# Create the database
+with app.app_context():
+    db.create_all()
+
+@app.route('/')
+def home():
+    return render_template('index.html')
+
+@app.route('/calculate', methods=['POST'])
+def calculate():
+    data = request.json
+    device = data['device']
+    power = float(data['power'])
+    hours = float(data['hours'])
+
+    energy_consumption = (power * hours) / 1000
+    carbon_emission = energy_consumption * 0.92
+
+    # Save to DB
+    new_usage = EnergyUsage(
+        device_name=device,
+        power_usage=power,
+        hours_per_day=hours,
+        energy_consumed=energy_consumption,
+        carbon_emission=carbon_emission
+    )
+    db.session.add(new_usage)
+    db.session.commit()
+
+    return jsonify({
+        "device": device,
+        "energyConsumption": round(energy_consumption, 2),
+        "carbonEmission": round(carbon_emission, 2)
+    })
+
+if _name_ == '_main_':
+    app.run(debug=True)
