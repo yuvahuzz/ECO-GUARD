@@ -1,0 +1,16 @@
+document.getElementById("energyForm").addEventListener("submit", function(event) {
+    event.preventDefault();
+
+    let device = document.getElementById("device").value;
+    let power = parseFloat(document.getElementById("power").value);
+    let hours = parseFloat(document.getElementById("hours").value);
+
+    let energyConsumption = (power * hours) / 1000;  // kWh calculation
+    let carbonEmission = energyConsumption * 0.92; // 0.92 kg CO2 per kWh (example factor)
+
+    document.getElementById("result").innerHTML = `
+        <h3>Device: ${device}</h3>
+        <p>Daily Consumption: ${energyConsumption.toFixed(2)} kWh</p>
+        <p>Estimated Carbon Emission: ${carbonEmission.toFixed(2)} kg CO2</p>
+    `;
+});
